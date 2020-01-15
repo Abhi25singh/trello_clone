@@ -3,7 +3,9 @@ import Lists from './Lists.js'
 import { appKey, appToken } from '../config.js'
 import Bars from 'react-loading'
 import Header from './Header.js'
-import Checklist from './Checklists'
+import Checklist from './Checklists.js'
+import Add from './addComponent.js'
+
 
 class BoardId extends Component {
     constructor() {
@@ -13,9 +15,20 @@ class BoardId extends Component {
             board: [],
             lists: [],
             card: [],
-            checklist: []
+            checklist: [],
+            input: ''
         }
         this.popModal = this.popModal.bind(this)
+        this.postList = this.postList.bind(this)
+        this.inputList = this.inputList.bind(this)
+        this.closeList = this.closeList.bind(this)
+        this.postChecklist = this.postChecklist.bind(this)
+        this.inputChecklist = this.inputChecklist.bind(this)
+        this.removeChecklist = this.removeChecklist.bind(this)
+        this.postItem = this.postItem.bind(this)
+        this.inputItem = this.inputItem.bind(this)
+        this.removeItem = this.removeItem.bind(this)
+        this.handleClick = this.handleClick.bind(this)
     }
 
     //style
@@ -63,8 +76,110 @@ class BoardId extends Component {
             }))
     }
 
+    inputList(event) {
+        this.setState({ input: event.value })
+    }
+
+    postList(list) {
+        const newList = fetch(`https://api.trello.com/1/lists?name=${this.state.input}&idBoard=${list.board}&pos=bottom&key=${appKey.key}&token=${appToken.token}`, {
+            method: 'POST'
+        })
+        newList.then(res => res.json())
+            .then(data => this.setState({ lists: this.state.lists.concat(data) }))
+    }
+
+    closeList(event) {
+        const closeList = fetch(`https://api.trello.com/1/lists/${event.list}/closed?value=true&key=${appKey.key}&token=${appToken.token}`, {
+            method: 'PUT'
+        })
+        closeList.then(res => res.json())
+            .then(data => {
+                if (!data.limit) {
+                    const lists = this.state.lists.filter(list => list.id !== event.list)
+                    return this.setState({ lists: lists })
+                }
+            })
+    }
+
+    inputChecklist(event) {
+        this.setState({ input: event.value })
+    }
+
+    postChecklist(checklist) {
+        const newCheckList = fetch(`https://api.trello.com/1/checklists?idCard=${checklist.card}&name=${this.state.input}&pos=bottom&key=${appKey.key}&token=${appToken.token}`, {
+            method: 'POST'
+        })
+        newCheckList.then(res => res.json())
+            .then(data => this.setState({ checklist: this.state.checklist.concat(data) }))
+    }
+
+    removeChecklist(event) {
+        const removeChecklist = fetch(`https://api.trello.com/1/checklists/${event.checklist}?key=${appKey.key}&token=${appToken.token}`, {
+            method: 'delete'
+        })
+        removeChecklist.then(res => res.json())
+            .then(data => {
+                if (!data.limit) {
+                    const checklist = this.state.checklist.filter(checklist => checklist.id !== event.checklist)
+                    return this.setState({ checklist: checklist })
+                }
+            })
+    }
+
+    inputItem(event) {
+        this.setState({ input: event.value })
+    }
+
+    postItem(event) {
+        const newItem = fetch(`https://api.trello.com/1/checklists/${event.checklist.id}/checkItems?name=${this.state.input}&pos=bottom&checked=false&key=${appKey.key}&token=${appToken.token}`, {
+            method: 'POST'
+        })
+        newItem.then(res => res.json())
+            .then(data => {
+                const checklist = [...this.state.checklist]
+                const index = checklist.indexOf(event.checklist)
+                checklist[index].checkItems.push(data)
+                this.setState({ checklist })
+            })
+    }
+
+    removeItem(event) {
+        const removeItem = fetch(`https://api.trello.com/1/checklists/${event.checkitem.idChecklist}/checkItems/${event.checkitem.id}?key=${appKey.key}&token=${appToken.token}`, {
+            method: 'delete'
+        })
+        removeItem.then(res => res.json())
+            .then(data => {
+                if (!data.limit) {
+                    const checklist = [...this.state.checklist]
+                    const list = checklist.filter(list => list.id === event.checkitem.idChecklist)
+                    const index = checklist.indexOf(list[0])
+                    const items = checklist[index].checkItems.filter(item => item.id !== event.checkitem.id)
+                    checklist[index].checkItems = items
+                    return this.setState({ checklist })
+                }
+            })
+    }
+
+    handleClick(event) {
+        const itemState = fetch(`https://api.trello.com/1/cards/${this.state.card.id}/checkItem/${event.id}?state=${event.state==='complete'?'incomplete':'complete'}&key=${appKey.key}&token=${appToken.token}`, {
+            method: 'put'
+        })
+        itemState.then(res => res.json())
+            .then(data => {
+                const checklist = [...this.state.checklist]
+                const list = checklist.filter(list => list.id === event.idChecklist)
+                const index = checklist.indexOf(list[0])
+                const items=checklist[index].checkItems.filter(item=>item.id !== event.id)
+                checklist[index].checkItems=items
+                checklist[index].checkItems.unshift(data)
+                return this.setState({ checklist })
+            })
+    }
+
+
     render() {
         const { name, prefs } = this.state.board
+
         return (
             this.state.isLoading ?
                 <div style={this.LoadScr}>
@@ -92,8 +207,15 @@ class BoardId extends Component {
                                     name={list.name}
                                     id={list.id}
                                     onCard={this.popModal}
+                                    onRemove={this.closeList}
                                 />)
                         }
+                        <div style={{ height: '10%' }}>
+                            <Add onAdd={this.postList}
+                                onInput={this.inputList}
+                                name={'add-list'}
+                                board={this.props.match.params.id} />
+                        </div>
                     </section>
                 </div>
                     <div className="modal fade" id="exampleModalScrollable" tabIndex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
@@ -106,16 +228,20 @@ class BoardId extends Component {
                                     </button>
                                 </div>
                                 <div className="modal-body">
-                                    <div className='checklist-container'>
-                                        {this.state.checklist.map(checklist =>
-                                            <Checklist checklist={checklist}
-                                                key={checklist.id} />
-                                        )}
-                                    </div>
+                                    {this.state.checklist.map(checklist =>
+                                        <Checklist checklist={checklist}
+                                            key={checklist.id}
+                                            onRemove={this.removeChecklist}
+                                            onAdd={this.postItem}
+                                            onInput={this.inputItem}
+                                            onRemoveItem={this.removeItem}
+                                            onChange={this.handleClick} />
+                                    )}
                                     <div className="modal-footer">
-                                        <div className="checklist-add">
-                                            <input className="checklist-input" type="text" /><button className="add-checklist" type="button">add checklist</button>
-                                        </div>
+                                        <Add onAdd={this.postChecklist}
+                                            onInput={this.inputChecklist}
+                                            name={'add-checklist'}
+                                            card={this.state.card.id} />
                                         <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
@@ -131,8 +257,6 @@ export default BoardId
 
 
 //board blue button to access all boards
-//home button to redirect to boards
-//add list by anchor button, close the list by PUT
-//add card & delete card,add checklist & remove checklist
+//home button to redirect to boards 
+//add checklist & remove checklist (+)
 //add checkitem, remove checkitem & update status by PUT
-//anchor change to react-link

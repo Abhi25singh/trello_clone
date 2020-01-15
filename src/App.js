@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap/dist/js/bootstrap.bundle.js'
 import { BrowserRouter as Router, Route, Switch} from 'react-router-dom'
 import BoardId from './components/BoardId.js'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 class App extends React.Component {
   render() {
