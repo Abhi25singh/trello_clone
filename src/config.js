@@ -1,9 +1,12 @@
+require('dotenv').config()
+console.log(process.env)
+
 const appKey={
-    key:'aca00dfa664cca1a65ef07ed82beffa1'
+    key:process.env.REACT_APP_API_KEY
 }
 
 const appToken={
-    token:'0c8833bb87bbff75d9ed20ec0662447fa2ed32efd3ce1216e16c973bea6409aa'
+    token:process.env.REACT_APP_API_TOKEN
 }
 
 export { appKey, appToken }

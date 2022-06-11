@@ -183,7 +183,7 @@ class BoardId extends Component {
         return (
             this.state.isLoading ?
                 <div style={this.LoadScr}>
-                    <Bars type={'bars'} color={'#33B0FF'} height={'20%'} width={'20%'} />
+                    <Bars type={'bars'} color={'#FFFFFF'} height={'20%'} width={'20%'} />
                 </div>
                 : <div><div style={{
                     height: '100vh',
@@ -254,9 +254,3 @@ class BoardId extends Component {
 }
 
 export default BoardId
-
-
-//board blue button to access all boards
-//home button to redirect to boards 
-//add checklist & remove checklist (+)
-//add checkitem, remove checkitem & update status by PUT

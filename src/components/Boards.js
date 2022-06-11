@@ -15,7 +15,7 @@ class Boards extends Component {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '50%'
+        height: '45%'
     }
 
     boardScr = {

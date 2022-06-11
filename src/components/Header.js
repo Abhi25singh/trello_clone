@@ -13,25 +13,25 @@ class Header extends Component {
     }
 
     render() {
-        // console.log(Boards)
+        // console.log(this)
         return (
             <nav style={this.header}
                 className="navbar navbar-dark">
 
-                <Link to='\boards'><img src={home} alt='home_icon' /></Link>
+                <Link to='/boards'><img src={home} alt='home_icon' /></Link>
 
                 <Link className='navbar-brand' to='#'><img src={trello} alt='logo-icon' /></Link>
 
                 <div className="btn-group dropleft">
-                    <button className="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {/* <button className="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Boards</button>
                     <div className="dropdown-menu">
                         <Link className="dropdown-item" to={`boards/${1}`}>{1}</Link>
-                    </div>
+                    </div> */}
                 </div>
             </nav>
         )
     }
 }
 
-export default Header;
+export default Header
